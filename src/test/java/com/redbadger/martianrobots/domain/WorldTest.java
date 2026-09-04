@@ -10,6 +10,8 @@ import com.redbadger.martianrobots.io.InputParser;
 import com.redbadger.martianrobots.io.OutputFormatter;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 class WorldTest {
 
@@ -50,6 +52,14 @@ class WorldTest {
     void cannotLandOffTheGrid() {
         assertThrows(IllegalArgumentException.class,
                 () -> world.run(new Mission(new Position(6, 0), Orientation.N, List.of())));
+    }
+
+    @ParameterizedTest
+    @EnumSource(Command.class)
+    void everyCommandIsDispatchedAndLeavesTheRobotOnTheGrid(Command command) {
+        Robot robot = world.run(new Mission(new Position(1, 1), Orientation.N, List.of(command)));
+        assertFalse(robot.lost());
+        assertTrue(world.contains(robot.position()));
     }
 
     @Test
@@ -128,7 +138,7 @@ class WorldTest {
         assertEquals("""
                 1 1 E
                 3 3 N LOST
-                2 3 S""".replace("\n", System.lineSeparator()),
-                OutputFormatter.format(world.finishedRobots()));
+                2 3 S
+                """, OutputFormatter.format(world.finishedRobots()));
     }
 }

@@ -31,11 +31,11 @@ class OutputFormatterTest {
         List<Robot> robots = List.of(
                 new Robot(new Position(1, 1), Orientation.E),
                 lost(new Position(3, 3), Orientation.N));
-        assertEquals("1 1 E" + System.lineSeparator() + "3 3 N LOST", OutputFormatter.format(robots));
+        assertEquals("1 1 E\n3 3 N LOST\n", OutputFormatter.format(robots));
     }
 
     @Test
-    void formatsNoRobotsAsEmptyString() {
+    void formatsNoRobotsAsNothingAtAll() {
         assertEquals("", OutputFormatter.format(List.of()));
     }
 }

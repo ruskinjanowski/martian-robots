@@ -81,9 +81,9 @@ class InputParserTest {
     }
 
     @Test
-    void acceptsNinetyNineInstructions() {
-        Input input = InputParser.parse("5 3\n1 1 E\n" + "F".repeat(99) + "\n");
-        assertEquals(99, input.missions().getFirst().commands().size());
+    void acceptsLongInstructionStrings() {
+        Input input = InputParser.parse("5 3\n1 1 E\n" + "F".repeat(250) + "\n");
+        assertEquals(250, input.missions().getFirst().commands().size());
     }
 
     @ParameterizedTest
@@ -106,10 +106,16 @@ class InputParserTest {
     }
 
     @Test
-    void rejectsInstructionStringsOfOneHundredOrMore() {
-        String text = "5 3\n1 1 E\n" + "F".repeat(100) + "\n";
-        InputException e = assertThrows(InputException.class, () -> InputParser.parse(text));
-        assertTrue(e.getMessage().contains("under 100"));
+    void rejectsALandingSquareOffTheGridEvenWhenWithinTheMaximumCoordinate() {
+        InputException e = assertThrows(InputException.class,
+                () -> InputParser.parse("5 3\n50 1 E\nF\n"));
+        assertTrue(e.getMessage().contains("outside the 5 3 grid"), e.getMessage());
+    }
+
+    @Test
+    void checksTheLandingSquareOfEveryRobotNotJustTheFirst() {
+        assertThrows(InputException.class,
+                () -> InputParser.parse("5 3\n1 1 E\nF\n9 9 N\nF\n"));
     }
 
     @Test

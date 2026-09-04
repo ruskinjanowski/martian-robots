@@ -15,9 +15,14 @@ public final class OutputFormatter {
         return robot.lost() ? line + " LOST" : line;
     }
 
+    /**
+     * The whole report: one line per robot, each terminated by a newline, so a run with no robots
+     * prints nothing at all. Newlines are always {@code \n} rather than the platform separator, so
+     * the output is byte-identical everywhere and can be diffed against a fixture.
+     */
     public static String format(List<Robot> robots) {
         return robots.stream()
-                .map(OutputFormatter::format)
-                .collect(Collectors.joining(System.lineSeparator()));
+                .map(robot -> format(robot) + "\n")
+                .collect(Collectors.joining());
     }
 }

@@ -50,7 +50,7 @@ public final class Main {
             for (Mission mission : input.missions()) {
                 world.run(mission);
             }
-            out.println(OutputFormatter.format(world.finishedRobots()));
+            out.print(OutputFormatter.format(world.finishedRobots()));
             return 0;
         } catch (InputException e) {
             err.println("Invalid input: " + e.getMessage());

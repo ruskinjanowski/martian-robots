@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * The Martian surface and everything on it: the grid bounds, the robots that have finished (in
@@ -41,18 +42,18 @@ public final class World {
             if (robot.lost()) {
                 break;
             }
-            execute(robot, command);
+            actionFor(command).accept(robot);
         }
         finished.add(robot);
         return robot;
     }
 
-    private void execute(Robot robot, Command command) {
-        switch (command) {
-            case L -> robot.turnLeft();
-            case R -> robot.turnRight();
-            case F -> moveForward(robot);
-        }
+    private Consumer<Robot> actionFor(Command command) {
+        return switch (command) {
+            case L -> Robot::turnLeft;
+            case R -> Robot::turnRight;
+            case F -> this::moveForward;
+        };
     }
 
     /**

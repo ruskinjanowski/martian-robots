@@ -13,7 +13,7 @@
   <description>Red Badger coding challenge: simulate robots exploring the surface of Mars.</description>
 
   <properties>
-    <maven.compiler.release>25</maven.compiler.release>
+    <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit.version>5.11.4</junit.version>
     <main.class>com.redbadger.martianrobots.Main</main.class>

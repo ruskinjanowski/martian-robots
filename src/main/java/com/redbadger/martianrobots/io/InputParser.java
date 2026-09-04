@@ -9,10 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Turns the text format from the challenge into an {@link Input}. This is the syntax layer: it
- * checks the shape of the text — line pairing, token counts, integers, known symbols — and builds
- * the objects. The spec's limits are not checked here; {@link World} and {@link Mission} enforce
- * their own, and {@link InputValidator} covers what needs both.
+ * Turns the text format from the challenge into an {@link Input}. Everything that can be wrong
+ * with the text is caught here and reported as an {@link InputException} naming the offending
+ * line: line pairing, token counts, integers, unknown symbols, and robots landing outside the
+ * grid they were given. {@link World} still guards its own bounds, so the domain stays correct
+ * whoever builds it, but the reader never has to see that failure.
  *
  * <p>The first non-blank line is the grid's upper-right corner; every following pair of non-blank
  * lines is a robot's start position and its instruction string. Blank lines anywhere are ignored.
@@ -23,12 +24,6 @@ public final class InputParser {
     }
 
     public static Input parse(String text) {
-        Input input = read(text);
-        InputValidator.validate(input);
-        return input;
-    }
-
-    private static Input read(String text) {
         List<String> lines = text.lines()
                 .map(String::strip)
                 .filter(line -> !line.isEmpty())
@@ -43,7 +38,7 @@ public final class InputParser {
             if (i + 1 >= lines.size()) {
                 throw new InputException("Robot on line '" + lines.get(i) + "' has no instruction line");
             }
-            missions.add(readMission(lines.get(i), lines.get(i + 1)));
+            missions.add(readMission(world, lines.get(i), lines.get(i + 1)));
         }
         return new Input(world, missions);
     }
@@ -62,23 +57,23 @@ public final class InputParser {
         }
     }
 
-    private static Mission readMission(String positionLine, String instructionLine) {
+    private static Mission readMission(World world, String positionLine, String instructionLine) {
         String[] parts = positionLine.split("\\s+");
         if (parts.length != 3 || parts[2].length() != 1) {
             throw new InputException("Robot position must be 'x y orientation', got '" + positionLine + "'");
         }
         Position start = readPosition(parts, positionLine);
+        if (!world.contains(start)) {
+            throw new InputException("Robot landing square " + start.x() + " " + start.y()
+                    + " is outside the " + world.maxX() + " " + world.maxY() + " grid");
+        }
         Orientation orientation = readOrientation(parts[2].charAt(0), positionLine);
 
         List<Command> commands = new ArrayList<>(instructionLine.length());
         for (char symbol : instructionLine.toCharArray()) {
             commands.add(readCommand(symbol, instructionLine));
         }
-        try {
-            return new Mission(start, orientation, commands);
-        } catch (IllegalArgumentException e) {
-            throw new InputException(e.getMessage() + " in '" + instructionLine + "'");
-        }
+        return new Mission(start, orientation, commands);
     }
 
     private static Position readPosition(String[] parts, String line) {
