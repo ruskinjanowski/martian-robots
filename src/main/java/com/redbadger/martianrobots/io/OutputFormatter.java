@@ -1,5 +1,6 @@
-package com.redbadger.martianrobots;
+package com.redbadger.martianrobots.io;
 
+import com.redbadger.martianrobots.domain.Robot;
 import java.util.List;
 import java.util.stream.Collectors;
 

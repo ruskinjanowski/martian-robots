@@ -1,4 +1,4 @@
-package com.redbadger.martianrobots;
+package com.redbadger.martianrobots.domain;
 
 import java.util.ArrayList;
 import java.util.HashSet;

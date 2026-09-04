@@ -1,4 +1,4 @@
-package com.redbadger.martianrobots;
+package com.redbadger.martianrobots.domain;
 
 /**
  * A robot on the grid. Mutable: it carries its own position, heading and lost flag, and updates

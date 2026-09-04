@@ -1,10 +1,13 @@
-package com.redbadger.martianrobots;
+package com.redbadger.martianrobots.domain;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.redbadger.martianrobots.io.Input;
+import com.redbadger.martianrobots.io.InputParser;
+import com.redbadger.martianrobots.io.OutputFormatter;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 

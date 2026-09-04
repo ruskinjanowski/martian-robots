@@ -1,7 +1,10 @@
-package com.redbadger.martianrobots;
+package com.redbadger.martianrobots.io;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.redbadger.martianrobots.domain.Orientation;
+import com.redbadger.martianrobots.domain.Position;
+import com.redbadger.martianrobots.domain.Robot;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 

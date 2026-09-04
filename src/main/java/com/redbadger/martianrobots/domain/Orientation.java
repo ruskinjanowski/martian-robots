@@ -1,4 +1,4 @@
-package com.redbadger.martianrobots;
+package com.redbadger.martianrobots.domain;
 
 /**
  * A compass heading and the unit step it moves a robot. The constants are declared in clockwise

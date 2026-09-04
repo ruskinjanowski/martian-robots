@@ -1,4 +1,4 @@
-package com.redbadger.martianrobots;
+package com.redbadger.martianrobots.domain;
 
 /**
  * An instruction a robot can carry out.

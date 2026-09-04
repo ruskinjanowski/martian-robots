@@ -1,4 +1,4 @@
-package com.redbadger.martianrobots;
+package com.redbadger.martianrobots.domain;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

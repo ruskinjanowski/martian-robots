@@ -1,4 +1,7 @@
-package com.redbadger.martianrobots;
+package com.redbadger.martianrobots.io;
+
+import com.redbadger.martianrobots.domain.Mission;
+import com.redbadger.martianrobots.domain.World;
 
 /**
  * Checks the rules that take more than one parsed object to see. A rule that belongs to a single

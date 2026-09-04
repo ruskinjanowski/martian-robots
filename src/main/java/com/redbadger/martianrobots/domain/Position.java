@@ -1,4 +1,4 @@
-package com.redbadger.martianrobots;
+package com.redbadger.martianrobots.domain;
 
 /** A grid coordinate. Immutable; equality and hashing are by value so it can key a set of scents. */
 public record Position(int x, int y) {
