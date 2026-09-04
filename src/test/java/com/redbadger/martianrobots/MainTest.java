@@ -80,6 +80,17 @@ class MainTest {
     }
 
     @Test
+    void reportsARobotLandingOutsideTheGrid() {
+        InputStream stdin = new ByteArrayInputStream("5 3\n50 1 E\nF\n".getBytes(StandardCharsets.UTF_8));
+
+        int exit = Main.run(new String[0], stdin, out, err);
+
+        assertEquals(1, exit);
+        assertTrue(stderr().startsWith("Invalid input:"), stderr());
+        assertEquals("", stdout());
+    }
+
+    @Test
     void rejectsTooManyArguments() {
         int exit = Main.run(new String[] {"a", "b"}, InputStream.nullInputStream(), out, err);
 

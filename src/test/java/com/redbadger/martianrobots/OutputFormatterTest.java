@@ -7,23 +7,27 @@ import org.junit.jupiter.api.Test;
 
 class OutputFormatterTest {
 
+    private static Robot lost(Position position, Orientation orientation) {
+        Robot robot = new Robot(position, orientation);
+        robot.markLost();
+        return robot;
+    }
+
     @Test
     void formatsASurvivingRobot() {
-        Robot robot = Robot.landed(new Position(1, 1), Orientation.E);
-        assertEquals("1 1 E", OutputFormatter.format(robot));
+        assertEquals("1 1 E", OutputFormatter.format(new Robot(new Position(1, 1), Orientation.E)));
     }
 
     @Test
     void formatsALostRobotWithSuffix() {
-        Robot robot = Robot.landed(new Position(3, 3), Orientation.N).markLost();
-        assertEquals("3 3 N LOST", OutputFormatter.format(robot));
+        assertEquals("3 3 N LOST", OutputFormatter.format(lost(new Position(3, 3), Orientation.N)));
     }
 
     @Test
     void joinsRobotsOnePerLine() {
         List<Robot> robots = List.of(
-                Robot.landed(new Position(1, 1), Orientation.E),
-                Robot.landed(new Position(3, 3), Orientation.N).markLost());
+                new Robot(new Position(1, 1), Orientation.E),
+                lost(new Position(3, 3), Orientation.N));
         assertEquals("1 1 E" + System.lineSeparator() + "3 3 N LOST", OutputFormatter.format(robots));
     }
 

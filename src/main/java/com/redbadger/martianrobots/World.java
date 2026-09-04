@@ -3,13 +3,12 @@ package com.redbadger.martianrobots;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
- * The Martian surface and everything on it: the grid bounds, the robot currently taking
- * commands, the robots that have finished (in order), and the scents left by lost robots.
- * This is the only mutable object in the simulation.
+ * The Martian surface and everything on it: the grid bounds, the robots that have finished (in
+ * order), and the scents left by lost robots. It runs one mission at a time, which is what the
+ * spec's sequential robots amount to.
  */
 public final class World {
 
@@ -19,7 +18,6 @@ public final class World {
     private final int maxY;
     private final List<Robot> finished = new ArrayList<>();
     private final Set<Position> scents = new HashSet<>();
-    private Robot active;
 
     public World(int maxX, int maxY) {
         if (maxX < 0 || maxY < 0 || maxX > MAX_COORDINATE || maxY > MAX_COORDINATE) {
@@ -28,6 +26,47 @@ public final class World {
         }
         this.maxX = maxX;
         this.maxY = maxY;
+    }
+
+    /**
+     * Lands a robot at the mission's starting square, runs its commands to completion, and records
+     * it in the finished list. Commands issued after the robot is lost are ignored.
+     */
+    public Robot run(Mission mission) {
+        if (!contains(mission.start())) {
+            throw new IllegalArgumentException("Landing position " + mission.start() + " is off the grid");
+        }
+        Robot robot = new Robot(mission.start(), mission.orientation());
+        for (Command command : mission.commands()) {
+            if (robot.lost()) {
+                break;
+            }
+            execute(robot, command);
+        }
+        finished.add(robot);
+        return robot;
+    }
+
+    private void execute(Robot robot, Command command) {
+        switch (command) {
+            case L -> robot.turnLeft();
+            case R -> robot.turnRight();
+            case F -> moveForward(robot);
+        }
+    }
+
+    /**
+     * Moving off the grid loses the robot and leaves a scent on the square it fell from, unless
+     * that square is already scented, in which case the robot ignores the command and stays put.
+     */
+    private void moveForward(Robot robot) {
+        Position next = robot.nextPosition();
+        if (contains(next)) {
+            robot.moveTo(next);
+        } else if (!hasScent(robot.position())) {
+            scents.add(robot.position());
+            robot.markLost();
+        }
     }
 
     public int maxX() {
@@ -45,46 +84,6 @@ public final class World {
 
     public boolean hasScent(Position position) {
         return scents.contains(position);
-    }
-
-    /** Places a new robot on the grid. Only one robot may be active at a time. */
-    public void landRobot(Position position, Orientation orientation) {
-        if (active != null) {
-            throw new IllegalStateException("A robot is already active; retire it before landing another");
-        }
-        if (!contains(position)) {
-            throw new IllegalArgumentException("Landing position " + position + " is off the grid");
-        }
-        active = Robot.landed(position, orientation);
-    }
-
-    /** Applies a command to the active robot. Commands after the robot is lost are ignored. */
-    public void execute(Command command) {
-        if (active == null) {
-            throw new IllegalStateException("No active robot to command");
-        }
-        if (active.lost()) {
-            return;
-        }
-        active = command.apply(active, this);
-        if (active.lost()) {
-            scents.add(active.position());
-        }
-    }
-
-    /** Ends the active robot's run, recording it in the finished list. */
-    public Robot retireRobot() {
-        if (active == null) {
-            throw new IllegalStateException("No active robot to retire");
-        }
-        Robot done = active;
-        active = null;
-        finished.add(done);
-        return done;
-    }
-
-    public Optional<Robot> activeRobot() {
-        return Optional.ofNullable(active);
     }
 
     public List<Robot> finishedRobots() {

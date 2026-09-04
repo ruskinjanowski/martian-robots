@@ -39,7 +39,11 @@ public final class Main {
 
         try {
             Input input = InputParser.parse(text);
-            out.println(OutputFormatter.format(Simulation.run(input)));
+            World world = input.world();
+            for (Mission mission : input.missions()) {
+                world.run(mission);
+            }
+            out.println(OutputFormatter.format(world.finishedRobots()));
             return 0;
         } catch (InputException e) {
             err.println("Invalid input: " + e.getMessage());

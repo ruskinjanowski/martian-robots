@@ -67,36 +67,3 @@ produces
 3 3 N LOST
 2 3 S
 ```
-
-Invalid input is reported on standard error with exit code 1. A missing file or bad
-arguments give exit code 2.
-
-## Design
-
-All classes live in `com.redbadger.martianrobots`.
-
-- **`World`** is the single mutable object. It holds the grid bounds, the robot currently
-  taking commands, the ordered list of finished robots, and the set of scented squares.
-  Its API is `landRobot`, `execute`, and `retireRobot`. Only one robot is active at a
-  time, matching the spec's rule that robots run sequentially.
-- **`Robot`**, **`Position`**, and **`Orientation`** are immutable values. Every change
-  to a robot produces a new instance.
-- **`Command`** is an enum whose constants each implement `apply(Robot, World)`. `F` asks
-  the world whether the target square is on the grid and whether the current square is
-  scented. Adding a new command means adding one constant.
-- **`InputParser`** validates the text format and the spec's limits (coordinates at most
-  50, instruction strings under 100 characters) and produces a `World` plus a list of
-  `Mission`s. **`Simulation`** drives the world through the missions.
-  **`OutputFormatter`** renders the results. **`Main`** wires these to the command line.
-
-### Decisions on points the spec leaves open
-
-- Scents are stored as a set of positions rather than by searching the lost robots,
-  because the scent belongs to the ground and a set gives a direct constant-time check.
-- A lost robot reports the orientation it had when it fell off.
-- Blank lines anywhere in the input are ignored, so the blank line between robots is
-  optional and leading or trailing blank lines are harmless.
-- A scented square protects against falling off in any direction from that square, not
-  just the direction the original robot fell.
-- The instruction limit is enforced as at most 99 characters, reading "less than 100
-  characters" literally.

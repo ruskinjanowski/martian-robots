@@ -14,12 +14,16 @@ class WorldTest {
 
     private final World world = new World(5, 3);
 
-    private void run(Position start, Orientation orientation, String instructions) {
-        world.landRobot(start, orientation);
-        for (char symbol : instructions.toCharArray()) {
-            world.execute(Command.fromSymbol(symbol));
-        }
-        world.retireRobot();
+    private Robot run(Position start, Orientation orientation, String instructions) {
+        List<Command> commands = instructions.chars()
+                .mapToObj(c -> Command.valueOf(String.valueOf((char) c)))
+                .toList();
+        return world.run(new Mission(start, orientation, commands));
+    }
+
+    private static void assertAt(Robot robot, int x, int y, Orientation orientation) {
+        assertEquals(new Position(x, y), robot.position());
+        assertEquals(orientation, robot.orientation());
     }
 
     @Test
@@ -40,43 +44,37 @@ class WorldTest {
     }
 
     @Test
-    void landedRobotBecomesActive() {
-        world.landRobot(new Position(1, 1), Orientation.E);
-        assertEquals(Robot.landed(new Position(1, 1), Orientation.E), world.activeRobot().orElseThrow());
-    }
-
-    @Test
-    void cannotLandWhileAnotherRobotIsActive() {
-        world.landRobot(new Position(1, 1), Orientation.E);
-        assertThrows(IllegalStateException.class, () -> world.landRobot(new Position(2, 2), Orientation.N));
-    }
-
-    @Test
     void cannotLandOffTheGrid() {
-        assertThrows(IllegalArgumentException.class, () -> world.landRobot(new Position(6, 0), Orientation.N));
+        assertThrows(IllegalArgumentException.class,
+                () -> world.run(new Mission(new Position(6, 0), Orientation.N, List.of())));
     }
 
     @Test
-    void commandsRequireAnActiveRobot() {
-        assertThrows(IllegalStateException.class, () -> world.execute(Command.F));
-        assertThrows(IllegalStateException.class, world::retireRobot);
+    void turnsInPlaceWithoutMoving() {
+        assertAt(run(new Position(1, 1), Orientation.N, "LL"), 1, 1, Orientation.S);
+        assertAt(run(new Position(1, 1), Orientation.N, "RRR"), 1, 1, Orientation.W);
     }
 
     @Test
-    void retiringRecordsRobotsInOrder() {
+    void forwardMovesOneSquareWhenTheTargetIsOnTheGrid() {
+        Robot robot = run(new Position(1, 1), Orientation.E, "F");
+        assertAt(robot, 2, 1, Orientation.E);
+        assertFalse(robot.lost());
+    }
+
+    @Test
+    void recordsRobotsInTheOrderTheyRan() {
         run(new Position(1, 1), Orientation.E, "RFRFRFRF");
         run(new Position(0, 0), Orientation.N, "F");
-        assertEquals(List.of(
-                Robot.landed(new Position(1, 1), Orientation.E),
-                Robot.landed(new Position(0, 1), Orientation.N)),
-                world.finishedRobots());
-        assertTrue(world.activeRobot().isEmpty());
+        List<Robot> finished = world.finishedRobots();
+        assertEquals(2, finished.size());
+        assertAt(finished.getFirst(), 1, 1, Orientation.E);
+        assertAt(finished.get(1), 0, 1, Orientation.N);
     }
 
     @Test
     void movingOffTheGridLosesTheRobotAndLeavesAScent() {
-        run(CORNER, Orientation.N, "F");
-        Robot lost = world.finishedRobots().getFirst();
+        Robot lost = run(CORNER, Orientation.N, "F");
         assertTrue(lost.lost());
         assertEquals(CORNER, lost.position());
         assertTrue(world.hasScent(CORNER));
@@ -84,33 +82,50 @@ class WorldTest {
 
     @Test
     void commandsAfterLossAreIgnored() {
-        run(CORNER, Orientation.N, "FLFFF");
-        Robot lost = world.finishedRobots().getFirst();
-        assertEquals(CORNER, lost.position());
-        assertEquals(Orientation.N, lost.orientation());
+        Robot lost = run(CORNER, Orientation.N, "FLFFF");
+        assertAt(lost, 5, 3, Orientation.N);
     }
 
     @Test
     void scentStopsLaterRobotsFallingOffTheSameSquare() {
         run(CORNER, Orientation.N, "F");
-        run(CORNER, Orientation.N, "FRF");
-        Robot survivor = world.finishedRobots().get(1);
+        Robot survivor = run(CORNER, Orientation.N, "FRF");
         assertFalse(survivor.lost());
-        assertEquals(new Position(5, 3), survivor.position());
-        assertEquals(Orientation.E, survivor.orientation());
+        assertAt(survivor, 5, 3, Orientation.E);
     }
 
     @Test
     void scentOnlyProtectsTheSquareItWasLeftOn() {
         run(CORNER, Orientation.N, "F");
-        run(new Position(4, 3), Orientation.N, "F");
-        assertTrue(world.finishedRobots().get(1).lost());
+        assertTrue(run(new Position(4, 3), Orientation.N, "F").lost());
     }
 
     @Test
     void scentStopsFallingInAnyDirectionFromThatSquare() {
         run(CORNER, Orientation.N, "F");
-        run(CORNER, Orientation.E, "F");
-        assertFalse(world.finishedRobots().get(1).lost());
+        assertFalse(run(CORNER, Orientation.E, "F").lost());
+    }
+
+    @Test
+    void runsTheSampleFromTheSpec() {
+        Input input = InputParser.parse("""
+                5 3
+                1 1 E
+                RFRFRFRF
+
+                3 2 N
+                FRRFLLFFRRFLL
+
+                0 3 W
+                LLFFFLFLFL
+                """);
+        World world = input.world();
+        input.missions().forEach(world::run);
+
+        assertEquals("""
+                1 1 E
+                3 3 N LOST
+                2 3 S""".replace("\n", System.lineSeparator()),
+                OutputFormatter.format(world.finishedRobots()));
     }
 }

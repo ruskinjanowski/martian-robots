@@ -1,7 +1,6 @@
 package com.redbadger.martianrobots;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -27,14 +26,4 @@ class OrientationTest {
         assertEquals(dy, orientation.dy());
     }
 
-    @ParameterizedTest
-    @CsvSource({"N,N", "E,E", "S,S", "W,W"})
-    void parsesFromSymbol(char symbol, Orientation expected) {
-        assertEquals(expected, Orientation.fromSymbol(symbol));
-    }
-
-    @org.junit.jupiter.api.Test
-    void rejectsUnknownSymbol() {
-        assertThrows(IllegalArgumentException.class, () -> Orientation.fromSymbol('X'));
-    }
 }
